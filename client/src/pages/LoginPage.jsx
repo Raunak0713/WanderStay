@@ -1,3 +1,8 @@
 export default function LoginPage(){
-    return 'login form should go here'
+    return(
+        <div>
+            <input type="email" placeholder='your@email.com' />
+            <input type="password" placeholder='password' />
+        </div>
+    );
 }
