@@ -11,7 +11,7 @@ export default function RegisterPage(){
             <div className="mb-64">
                 <h1 className="text-4xl text-center mb-4">Register</h1>
                 <form className="max-w-md mx-auto">
-                    <input type="text" placeholder='John Does'
+                    <input type="text" placeholder='John Doe'
                         value={name}
                         onChange={ev => setName(ev.target.value)}
                     />
