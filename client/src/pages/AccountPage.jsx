@@ -1,20 +1,29 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { UserContext } from "../UserContext";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
+import axios from "axios";
+import PlacesPage from "./PlacesPage";
 
 export default function AccountPage() {
-    const { user, ready } = useContext(UserContext);
+    const { user, ready, setUser } = useContext(UserContext);
+    const [redirect, setRedirect] = useState(null);
 
     let {subpage} = useParams();
     if(subpage === undefined) {
         subpage = 'profile';
     }
 
+    async function logout(){
+        await axios.post('/logout');
+        setRedirect('/');
+        setUser(null);
+    }
+ 
     if (!ready) {
         return 'Loading...';
     }
 
-    if (!user && ready) {
+    if (!user && ready && !redirect) {
         return <Navigate to={'/login'} />;
     }
 
@@ -26,17 +35,24 @@ export default function AccountPage() {
         return classes;
     }
 
+    if(redirect){
+        return <Navigate to={redirect} />
+    }    
     return (
         <div>
-            <nav className="w-full flex mt-8 gap-2 justify-center">
+            <nav className="w-full flex mt-8 gap-2 justify-center mb-8">
                 <Link className={linkClasses('profile')} to={'/account'}>My Profile</Link>
                 <Link className={linkClasses('bookings')} to={'/account/bookings'}>My Bookings</Link>
                 <Link className={linkClasses('places')} to={'/account/places'}>My Accommodations</Link>
             </nav>
             {subpage === 'profile' && (
-                <div className="">
-                    Logged in as {user.name}
+                <div className="text-center max-w-lg mx-auto">
+                    Logged in as {user.name} ({user.email}) <br />
+                    <button onClick={logout} className="primary max-w-sm mt-2">Logout</button>
                 </div>
+            )}
+            {subpage === 'places' && (
+                <PlacesPage />
             )}
         </div>
     );
