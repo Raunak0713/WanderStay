@@ -16,7 +16,6 @@ export default function LoginPage(){
                 password,
             })
             setUser(data);
-            alert('Login successful');
             setRedirect(true);
         } catch (e) {
             alert('Login Failed');
