@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
+const ImageDownloader = require('image-downloader');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const app = express();
@@ -68,10 +69,16 @@ app.get('/profile', (req, res) => {
     } else {
         res.json(null);
     }
-})
+});
 
 app.post('/logout', (req, res) => {
     res.cookie('token','').json(true); 
+});
+
+app.post('/upload-by-link', (req,res) => {
+    const {link} = req.body;
 })
+
+
 
 app.listen(4000);

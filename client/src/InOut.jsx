@@ -12,7 +12,7 @@ export default function InOut({i, si, o, so, g, mg}) {
                 </div>
                 <div>
                     <h3 className="mt-2 -mb-1">Max number of guests</h3>
-                    <input type="text" value={g} onChange={ev => mg(ev.target.value)}/>
+                    <input type="number" value={g} onChange={ev => mg(ev.target.value)}/>
                 </div>
             </div>
             <button className="primary my-4">Save</button>
