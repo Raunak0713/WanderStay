@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 // const ImageDownloader = require('image-downloader');
 const cookieParser = require('cookie-parser');
+const multer = require('multer');
+const fs = require('fs');
 require('dotenv').config();
 const app = express();
 
@@ -75,7 +77,14 @@ app.post('/logout', (req, res) => {
     res.cookie('token','').json(true); 
 });
 
+const photosMiddleware = multer({dest:'uploads'});
 
+app.post('/upload', photosMiddleware.array('photos', 100) , (req,res) => {
+    for(let i = 0; i < req.files.length; i++){
+        const {path} = req.files[i];
+    }
+    res.json(req.files);
+})
 
 
 
