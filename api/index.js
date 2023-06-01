@@ -4,88 +4,111 @@ const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
-// const ImageDownloader = require('image-downloader');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
-const app = express();
 
+const app = express();
 const bcryptSalt = bcrypt.genSaltSync(10);
 const jwtSecret = 'fghejqabcdjh5543qdgd54hjk';
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-    credentials: true,
-    origin: 'http://localhost:5173',
-}));
+
+// Set up CORS options
+const corsOptions = {
+  credentials: true,
+  origin: 'http://localhost:5173',
+};
+app.use(cors(corsOptions));
+
+// Serve static files from the uploads directory
+
+
 mongoose.connect(process.env.MONGO_URL);
 
 app.get('/test', (req, res) => {
-    res.json("test ok");
+  res.json("test ok");
 });
 
 app.post('/register', async (req, res) => {
-    const { name, email, password } = req.body;
-    try {
-        const userDoc = await User.create({
-          name,
-          email,
-          password:bcrypt.hashSync(password, bcryptSalt),
-        });
-        res.json(userDoc);
-    } catch (error) {
-        console.error('Registration error:', error);
-        res.status(422).json(error);
-    }
-      
+  const { name, email, password } = req.body;
+  try {
+    const userDoc = await User.create({
+      name,
+      email,
+      password: bcrypt.hashSync(password, bcryptSalt),
+    });
+    res.json(userDoc);
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(422).json(error);
+  }
 });
 
 app.post('/login', async (req, res) => {
-    const {email, password} = req.body;
-    const userDoc = await User.findOne({email})
-    if(userDoc){
-        const passOk = bcrypt.compareSync(password, userDoc.password);
-        if(passOk){
-            jwt.sign({email:userDoc.email, id:userDoc._id, name:userDoc.name}, jwtSecret, {}, (err,token) => {
-                if(err) throw err;
-                res.cookie('token', token).json(userDoc);
-            });
-        } else {
-            res.status(422).json('pass not ok');
-        }
+  const { email, password } = req.body;
+  const userDoc = await User.findOne({ email });
+  if (userDoc) {
+    const passOk = bcrypt.compareSync(password, userDoc.password);
+    if (passOk) {
+      jwt.sign({ email: userDoc.email, id: userDoc._id, name: userDoc.name }, jwtSecret, {}, (err, token) => {
+        if (err) throw err;
+        res.cookie('token', token).json(userDoc);
+      });
     } else {
-        res.json('Not Found');
+      res.status(422).json('pass not ok');
     }
+  } else {
+    res.json('Not Found');
+  }
 });
 
 app.get('/profile', (req, res) => {
-    const {token} = req.cookies;
-    if(token){
-        jwt.verify(token, jwtSecret, {}, async (err,userData) => {
-            if(err) throw err;
-            const {name, email, _id} = await User.findById(userData.id);
-            res.json({name, email, _id});
-        });
-    } else {
-        res.json(null);
-    }
+  const { token } = req.cookies;
+  if (token) {
+    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+      if (err) throw err;
+      const { name, email, _id } = await User.findById(userData.id);
+      res.json({ name, email, _id });
+    });
+  } else {
+    res.json(null);
+  }
 });
 
 app.post('/logout', (req, res) => {
-    res.cookie('token','').json(true); 
+  res.cookie('token', '').json(true);
 });
 
-const photosMiddleware = multer({dest:'uploads'});
+// Configure multer for handling file uploads
+const photosMiddleware = multer({ dest: 'uploads' });
 
-app.post('/upload', photosMiddleware.array('photos', 100) , (req,res) => {
-    for(let i = 0; i < req.files.length; i++){
-        const {path} = req.files[i];
-    }
-    res.json(req.files);
-})
+const uploadsPath = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsPath));
 
+app.post('/upload', photosMiddleware.array('photos', 100), (req, res) => {
+  const uploadedFiles = [];
+  for (let i = 0; i < req.files.length; i++) {
+    const { path, originalname } = req.files[i];
+    const parts = originalname.split('.');
+    const ext = parts[parts.length - 1];
+    const newPath = path + '.' + ext;
+    fs.renameSync(path, newPath);
+    uploadedFiles.push(newPath.replace('uploads/', ''));
+  }
+  res.json(uploadedFiles);
+});
 
+// Root route
+app.get('/', (req, res) => {
+  res.send('Server is running!');
+});
 
-app.listen(4000);
+// Start the server
+const port = process.env.PORT || 4000;
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
+});

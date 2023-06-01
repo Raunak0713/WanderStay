@@ -53,9 +53,9 @@ export default function PlacesPage() {
         axios.post('/upload', data, {
             headers: {'Content-Type':'multipart/form-data'}
         }).then(response => {
-            const {data:filename} = response;
+            const {data:filenames} = response;
             setAddedPhotos(prev => {
-                return [...prev, filename];
+                return [...prev, ...filenames];
             });
         })
     }
@@ -84,8 +84,12 @@ export default function PlacesPage() {
 
 
                         {preInput('Photos','The more , the better')}
-                        
-                        <div className="mt-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                        <div className="mt-2 gap-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                            {addedPhotos.length > 0 && addedPhotos.map((photo, index) => (
+                                <div key={index}>
+                                    <img className="rounded-2xl" src={`/uploads/${photo}`} alt="" />    
+                                </div>
+                            ))}
                             <label className="flex items-center gap-1 justify-center border bg-transparent rounded-2xl p-8 text-2xl text-gray-500">
                                 <input type="file" className="hidden" onChange={uploadPhoto}/>    
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
